@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Double Archimedean Spiral Sensor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;
+500;
+600&family=DM+Mono:wght@400;
+500&display=swap" rel="stylesheet">
+<style>
+:root,[data-theme="light"]{--bg:#f5f4f1;
+--surf:#ffffff;
+--surf2:#f9f8f6;
+--border:#dcd9d3;
+--text:#26231c;
+--muted:#76746e;
+--acc:#01696f;
+--warn:#964219;
+--err:#a12c2c;
+--shadow:0 2px 8px oklch(0.2 0.01 80/.07),0 1px 2px oklch(0.2 0.01 80/.05)}
+[data-theme="dark"]{--bg:#171614;
+--surf:#1c1b19;
+--surf2:#222120;
+--border:#393836;
+--text:#cdccca;
+--muted:#797876;
+--acc:#4f98a3;
+--warn:#bb653b;
+--err:#d16363;
+--shadow:0 2px 8px oklch(0 0 0/.3),0 1px 2px oklch(0 0 0/.2)}
+*{box-sizing:border-box;
+margin:0;
+padding:0} html{font-family:'DM Sans',sans-serif;
+background:var(--bg);
+color:var(--text)} body{max-width:980px;
+margin:0 auto;
+padding:20px 14px 36px}
+header{display:flex;
+justify-content:space-between;
+align-items:center;
+gap:12px;
+margin-bottom:16px} h1{font-size:clamp(1rem,2.2vw,1.2rem);
+line-height:1.25} h1 span{font-weight:400;
+color:var(--muted)}
+button[data-theme-toggle]{background:none;
+border:1px solid var(--border);
+border-radius:8px;
+padding:8px;
+cursor:pointer;
+color:var(--muted)}
+.controls{display:grid;
+grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+gap:10px;
+margin-bottom:12px}.ctrl{background:var(--surf);
+border:1px solid var(--border);
+border-radius:10px;
+padding:10px 12px;
+box-shadow:var(--shadow)}
+.ctrl label{display:block;
+font-size:11px;
+color:var(--muted);
+font-weight:600;
+letter-spacing:.05em;
+text-transform:uppercase;
+margin-bottom:5px}.ctrl .row{display:flex;
+align-items:center;
+gap:8px}.ctrl input[type=range]{flex:1;
+accent-color:var(--acc)}
+.val{font-family:'DM Mono',monospace;
+font-size:13px;
+min-width:42px;
+text-align:right}.unit{font-size:11px;
+color:var(--muted)}
+.canvas-wrap{background:var(--surf);
+border:1px solid var(--border);
+border-radius:12px;
+overflow:hidden;
+box-shadow:var(--shadow);
+margin-bottom:12px} canvas{display:block;
+width:100%}
+.alert{display:none;
+background:color-mix(in oklab, var(--err) 12%, var(--surf));
+border:1px solid var(--err);
+border-left:3px solid var(--err);
+border-radius:10px;
+padding:10px 12px;
+color:var(--err);
+font-size:12px;
+line-height:1.6;
+margin-bottom:12px}
+.legend{display:flex;
+gap:16px;
+flex-wrap:wrap;
+font-size:12px;
+color:var(--muted);
+margin-bottom:12px}.legend span{display:flex;
+align-items:center;
+gap:6px}.sw{display:inline-block;
+border-radius:2px}
+.ig{display:grid;
+grid-template-columns:repeat(auto-fit,minmax(145px,1fr));
+gap:10px;
+margin-bottom:12px}.ic{background:var(--surf);
+border:1px solid var(--border);
+border-radius:10px;
+padding:10px 12px;
+box-shadow:var(--shadow)}
+.lb{font-size:10px;
+color:var(--muted);
+font-weight:600;
+letter-spacing:.05em;
+text-transform:uppercase;
+margin-bottom:3px}.vl{font-family:'DM Mono',monospace;
+font-size:15px;
+font-weight:500}.u{font-size:11px;
+color:var(--muted)}
+.note{background:var(--surf2);
+border:1px solid var(--border);
+border-left:3px solid var(--acc);
+border-radius:10px;
+padding:11px 13px;
+font-size:12px;
+color:var(--muted);
+line-height:1.75}.note strong{color:var(--text)}
+</style>
+</head>
+<body>
+<header>
+  <h1>Double Archimedean Spiral Sensor </h1>
+  <button data-theme-toggle aria-label="Toggle dark mode">◐</button>
+</header>
+<div class="controls">
+  <div class="ctrl"><label>Turns (N)</label><div class="row"><input type="range" id="turns" min="2" max="12" value="5" step="1"><span class="val" id="turnsV">5</span></div></div>
+  <div class="ctrl"><label>Wire width w</label><div class="row"><input type="range" id="wire" min="5" max="40" value="12" step="1"><span class="val" id="wireV">12</span><span class="unit">µm</span></div></div>
+  <div class="ctrl"><label>Gap g</label><div class="row"><input type="range" id="gap" min="5" max="80" value="20" step="1"><span class="val" id="gapV">20</span><span class="unit">µm</span></div></div>
+  <div class="ctrl"><label>Pad size</label><div class="row"><input type="range" id="pad" min="200" max="320" value="200" step="10"><span class="val" id="padV">200</span><span class="unit">µm</span></div></div>
+  <div class="ctrl"><label>Film thick. t</label><div class="row"><input type="range" id="th" min="0.5" max="10" value="2" step="0.5"><span class="val" id="thV">2.0</span><span class="unit">µm</span></div></div>
+  <div class="ctrl"><label> Resistivity (Rho) (10⁻⁸ Ω·m)</label><div class="row"><input type="range" id="rho" min="10" max="120" value="50" step="5"><span class="val" id="rhoV">50</span><span class="unit">×10⁻⁸</span></div></div>
+  <div class="ctrl"><label>Piezo. coeff: Kp (×10⁻³ GPa⁻¹)</label><div class="row"><input type="range" id="kp" min="5" max="30" value="12.5" step="0.5"><span class="val" id="kpV">12.5</span></div></div>
+  <div class="ctrl"><label>P max</label><div class="row"><input type="range" id="pm" min="1" max="20" value="15" step="1"><span class="val" id="pmV">15</span><span class="unit">GPa</span></div></div>
+</div>
+<div id="alert" class="alert"></div>
+<div class="canvas-wrap"><canvas id="c" height="580"></canvas></div>
+<div class="legend">
+  <span><span class="sw" style="background:#9c5f10;
+width:18px;
+height:8px"></span>S1: outer → center, clockwise</span>
+  <span><span class="sw" style="background:#e49a2e;
+width:18px;
+height:8px"></span>S2: center → outer, counter-clockwise</span>
+  <span><span class="sw" style="background:#0f6e56;
+width:14px;
+height:10px"></span>Bridge = exact end-to-start link</span>
+  <span><span class="sw" style="background:#1d5da7;
+width:14px;
+height:10px"></span>Outer pads A / B</span>
+</div>
+<div class="ig" id="info"></div>
+<div class="note" id="note"></div>
+
+<script>
+(function(){
+  const root=document.documentElement,btn=document.querySelector('[data-theme-toggle]');
+  let d=matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light';
+  root.setAttribute('data-theme',d);
+  btn.addEventListener('click',()=>{d=d==='dark'?'light':'dark';
+  root.setAttribute('data-theme',d);
+  draw();
+  });
+})();
+
+['turns','wire','gap','pad','th','rho','kp','pm'].forEach(id=>{document.getElementById(id).addEventListener('input',()=>{const v=parseFloat(document.getElementById(id).value);
+document.getElementById(id+'V').textContent=(id==='th'||id==='kp')?v.toFixed(1):v;
+draw();
+});
+});
+
+const canvas=document.getElementById('c');
+const ctx=canvas.getContext('2d');
+const CLR_MIN=5;
+
+function spiralLength(R0_m,N,pitch_m){
+  const b=pitch_m/(2*Math.PI),
+        tmax=N*2*Math.PI,
+        n=1000;
+  let s=0;
+  for(let i=0; i<n; i++){
+    const t1=tmax*i/n,t2=tmax*(i+1)/n,tm=(t1+t2)/2;
+    const f=t=>Math.sqrt((R0_m+b*t)**2+b*b);
+    s+=(t2-t1)/6*(f(t1)+4*f(tm)+f(t2));
+  }
+  return s;
+}
+
+function fmtOhm(v){
+  return v<1?`${(v*1000).toFixed(1)}<span class="u">mΩ</span>`:v<100?`${v.toFixed(2)}<span class="u">Ω</span>`:`${v.toFixed(1)}<span class="u">Ω</span>`;
+}
+
+function rrect(x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.lineTo(x+w-r,y);
+  ctx.arcTo(x+w,y,x+w,y+r,r);
+  ctx.lineTo(x+w,y+h-r);
+  ctx.arcTo(x+w,y+h,x+w-r,y+h,r);
+  ctx.lineTo(x+r,y+h);
+  ctx.arcTo(x,y+h,x,y+h-r,r);
+  ctx.lineTo(x,y+r);
+  ctx.arcTo(x,y,x+r,y,r);
+  ctx.closePath();
+}
+
+function draw(){
+  const N=parseInt(document.getElementById('turns').value), 
+                  w_um=parseInt(document.getElementById('wire').value), 
+                  g_um=parseInt(document.getElementById('gap').value), 
+                  pad_um=parseInt(document.getElementById('pad').value), 
+                  th_um=parseFloat(document.getElementById('th').value), 
+                  rho=parseFloat(document.getElementById('rho').value)*1e-8, 
+                  Kp=parseFloat(document.getElementById('kp').value)*1e-3, 
+                  Pmax=parseFloat(document.getElementById('pm').value);
+
+  const pitch_um=w_um+g_um, 
+        innerR_um=2*w_um,  // design choice of 2
+        outerR_um=innerR_um+N*pitch_um;
+
+  const edgeClr_um=g_um/2 - w_um/2, 
+        gapMin_um=w_um+2*CLR_MIN, 
+        okClr=edgeClr_um>=CLR_MIN;
+
+  const dark=document.documentElement.getAttribute('data-theme')==='dark';
+  const W=canvas.offsetWidth||760, H=580, dpr=window.devicePixelRatio||1;
+  canvas.width=W*dpr;
+  canvas.height=H*dpr;
+  canvas.style.width=W+'px';
+  canvas.style.height=H+'px';
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.scale(dpr,dpr);
+
+  const bg=dark?'#1c1b19':'#f8f7f5', dieBg=dark?'#2a2a28':'#fff', dieBd=dark?'#555':'#d4d1ca', txt2=dark?'#7d7b75':'#8a877f', s1c=dark?'#d59c42':'#9c5f10', s2c=dark?'#f1bf67':'#e49a2e', brc=dark?'#69c5a7':'#0f6e56', termc=dark?'#86b6e7':'#1d5da7', errc=dark?'#f09595':'#a12c2c';
+
+  ctx.fillStyle=bg;
+  ctx.fillRect(0,0,W,H);
+
+  const dieUm=2000, mg=54, scale=Math.min((W-2*mg)/dieUm,(H-2*mg)/dieUm), diePx=dieUm*scale, ox=(W-diePx)/2, oy=(H-diePx)/2, u=v=>v*scale;
+
+  ctx.fillStyle=dieBg;
+  ctx.strokeStyle=dieBd;
+  ctx.lineWidth=1;
+  rrect(ox,oy,diePx,diePx,8);
+  ctx.fill();
+  ctx.stroke();
+
+  const alert=document.getElementById('alert');
+  if(!okClr){
+    alert.style.display='block';
+    alert.innerHTML=`<strong>Geometry invalid.</strong> Edge clearance = <strong>${edgeClr_um.toFixed(1)} µm</strong>. Need at least ${CLR_MIN} µm, so <strong>g ≥ ${gapMin_um} µm</strong>.`;
+  } else alert.style.display='none';
+
+  const cx=ox+diePx/2, cy=oy+diePx/2, padPx=u(pad_um), maxAllow=diePx/2-padPx-u(28);
+  if(u(outerR_um)>maxAllow){
+    ctx.fillStyle=errc;
+    ctx.font="13px 'DM Sans',sans-serif";
+    ctx.textAlign='center';
+    ctx.textBaseline='middle';
+    ctx.fillText('Spiral footprint exceeds 2 mm die / pad clearance.',W/2,H/2);
+    return;
+  }
+  ctx.save();
+  rrect(ox+2,oy+2,diePx-4,diePx-4,6);
+  ctx.clip();
+  const w_px=Math.max(1.5,u(w_um));
+
+  function buildSpiralInward(Router_um,N,pitch_um,startAngle){
+    const steps=N*320, pts=[];
+    for(let i=0; i<=steps; i++){
+      const th=i/steps*N*2*Math.PI;
+      const r=u(Router_um)-u(pitch_um)/(2*Math.PI)*th;
+      const ang=startAngle-th;
+      pts.push({x:cx+r*Math.cos(ang),y:cy+r*Math.sin(ang)});
+    } 
+    return pts;
+  }
+
+  function buildSpiralOutwardFromPoint(Rstart_um,N,pitch_um,startAngle){
+    const steps=N*320, pts=[];
+    for(let i=0; i<=steps;i++){
+        const th=i/steps*N*2*Math.PI;
+        const r=u(Rstart_um)+u(pitch_um)/(2*Math.PI)*th;
+        const ang=startAngle+th;
+        pts.push({x:cx+r*Math.cos(ang),y:cy+r*Math.sin(ang)});
+      } 
+      return pts;
+  }
+
+  const s1=buildSpiralInward(outerR_um,N,pitch_um,-Math.PI/2);
+
+  const bridgeStart=s1[s1.length-1];
+
+  const bridgeEnd={x:bridgeStart.x, y:cy};
+
+  const bridgeLen_um=Math.abs(bridgeEnd.y-bridgeStart.y)/u(1);
+
+  const s2=buildSpiralOutwardFromPoint(bridgeLen_um,N,pitch_um,Math.PI/2);
+
+  s2[0]={x:bridgeEnd.x, y:bridgeEnd.y};
+
+
+  function drawPath(pts,col){
+    ctx.strokeStyle=col;
+    ctx.lineWidth=w_px;
+    ctx.lineCap='round';
+    ctx.lineJoin='round';
+    ctx.beginPath();
+    pts.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));
+    ctx.stroke();
+  }
+
+  drawPath(s1,s1c);
+  ctx.strokeStyle=brc;
+  ctx.lineWidth=w_px;
+  ctx.lineCap='round';
+  ctx.beginPath();
+  ctx.moveTo(bridgeStart.x,bridgeStart.y);
+  ctx.lineTo(bridgeEnd.x,bridgeEnd.y);
+  ctx.stroke();
+  drawPath(s2,s2c);
+
+  const A=s1[0], B=s2[s2.length-1];
+
+  function pad(x,y,label,col){
+    const pw=padPx;
+    ctx.fillStyle=col+'22';
+    ctx.strokeStyle=col;
+    ctx.lineWidth=1.5;
+    rrect(x-pw/2,y-pw/2,pw,pw,4);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle=col;
+    ctx.font=`600 ${Math.max(10,Math.round(u(48)))}px 'DM Sans',sans-serif`;
+    ctx.textAlign='center';
+    ctx.textBaseline='middle';
+    ctx.fillText(label,x,y-u(8));
+  }
+  const pA={x:ox+padPx/2+u(16),y:oy+padPx/2+u(16)}, pB={x:ox+diePx-padPx/2-u(16),y:oy+diePx-padPx/2-u(16)};
+
+  ctx.strokeStyle=termc;
+  ctx.lineWidth=Math.max(1,u(2));
+  ctx.setLineDash([u(5),u(4)]);
+  ctx.beginPath();
+  ctx.moveTo(pA.x+padPx/2,pA.y+padPx/2);
+  ctx.bezierCurveTo(pA.x+u(120),pA.y+u(50),A.x-u(40),A.y-u(40),A.x,A.y);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(pB.x-padPx/2,pB.y-padPx/2);
+  ctx.bezierCurveTo(pB.x-u(120),pB.y-u(50),B.x+u(40),B.y+u(40),B.x,B.y);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  pad(pA.x,pA.y,'A',termc);
+  pad(pB.x,pB.y,'B',termc);
+
+  ctx.fillStyle=brc;
+  ctx.beginPath();
+  ctx.arc(bridgeEnd.x,bridgeEnd.y,Math.max(3,u(6)),0,2*Math.PI);
+  ctx.fill();
+
+  ctx.fillStyle=termc;
+  ctx.beginPath();
+  ctx.arc(A.x,A.y,Math.max(3,u(7)),0,2*Math.PI);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(B.x,B.y,Math.max(3,u(7)),0,2*Math.PI);
+  ctx.fill();
+
+  ctx.strokeStyle=txt2;
+  ctx.lineWidth=.5;
+  ctx.setLineDash([3,3]);
+  ctx.beginPath();
+  ctx.arc(cx,cy,u(outerR_um),0,2*Math.PI);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle=txt2;
+  ctx.font=`${Math.max(9,Math.round(u(34)))}px 'DM Mono',monospace`;
+  ctx.textAlign='left';
+  ctx.textBaseline='middle';
+  ctx.fillText('⌀ '+(2*outerR_um/1000).toFixed(3)+' mm',cx+u(outerR_um)+u(8),cy);
+  ctx.textAlign='center';
+  ctx.fillText('2 mm die',cx,oy+diePx-u(8));
+
+  ctx.restore();
+
+  const Rstart2_um = Math.hypot(bridgeEnd.x - cx, bridgeEnd.y - cy);
+
+  const L1=spiralLength(innerR_um*1e-6,N,pitch_um*1e-6), 
+        L2 = L1, 
+        Lb=2*bridgeLen_um*1e-6,
+        Lconnections=2*0.1*1e-3, 
+        L=L1+L2+Lb+Lconnections,
+        Lb_um=2*bridgeLen_um,
+        R0=rho*L/((w_um*1e-6)*(th_um*1e-6)), 
+        dRoR=Kp*Pmax, 
+        dR=R0*dRoR, 
+        dV=0.01*dR, 
+        aspect=(th_um*1e-3)/((2*outerR_um)/1000); // I = 0.01 as design choice
+
+  document.getElementById('info').innerHTML=`<div class="ic"><div class="lb">Outer diameter</div><div class="vl">${(2*outerR_um/1000).toFixed(3)} <span class="u">mm</span></div></div><div class="ic"><div class="lb">Pitch p</div><div class="vl">${pitch_um.toFixed(0)} <span class="u">µm</span></div></div><div class="ic"><div class="lb">Bridge length</div><div class="vl">${Lb_um.toFixed(2)} <span class="u">µm</span></div></div><div class="ic"><div class="lb">L₁ spiral</div><div class="vl">${(L1*1000).toFixed(2)} <span class="u">mm</span></div></div><div class="ic"><div class="lb">L₂ spiral</div><div class="vl">${(L2*1000).toFixed(2)} <span class="u">mm</span></div></div><div class="ic"><div class="lb">L total (with 2 x 0.01 m connection ports)</div><div class="vl">${(L*1000).toFixed(2)} <span class="u">mm</span></div></div><div class="ic"><div class="lb">R₀</div><div class="vl">${fmtOhm(R0)}</div></div><div class="ic"><div class="lb">ΔR at ${Pmax} GPa</div><div class="vl">${fmtOhm(dR)}</div></div><div class="ic"><div class="lb">ΔR/R₀ (relative Resistance change)</div><div class="vl">${(dRoR*100).toFixed(2)} <span class="u">%</span></div></div><div class="ic"><div class="lb">ΔV (10 mA)</div><div class="vl">${(dV*1000).toFixed(2)} <span class="u">mV</span></div></div><div class="ic"><div class="lb">R vs 50 Ω coax</div><div class="vl">${(R0/50*100).toFixed(1)} <span class="u">%</span></div></div><div class="ic"><div class="lb">t/⌀ ratio</div><div class="vl">${aspect.toFixed(4)} <span class="u">${aspect<0.5?'(Good)':'⚠'}</span></div></div>`;
+
+  document.getElementById('note').innerHTML=`<strong>Geometry tied together:</strong> the bridge now ends exactly on the start point of S2, and S2 begins from that same coordinate. The bridge length is computed from the actual endpoint coordinates and added once to the total length <code>L = L₁ + L₂ + L_bridge</code>.`;
+
+}
+
+window.addEventListener('resize',draw);
+draw();
+
+</script>
+</body>
+</html>
